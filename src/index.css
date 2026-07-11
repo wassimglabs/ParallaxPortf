@@ -25,6 +25,7 @@ body,
   height: 100vh;
 }
 
+/* --- Hero & 3D Canvas --- */
 .hero-stage {
   position: relative;
   width: 100vw;
@@ -44,15 +45,32 @@ body,
 
 .photo-card {
   position: absolute;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
-  transform: translateZ(var(--depth-z, 0px)) rotate(var(--tilt));
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  opacity: 0;
+  transform:
+    translate3d(0, 46px, var(--depth-z))
+    rotate(calc(var(--tilt) * 2.4))
+    scale(0.82);
+  transition:
+    opacity 620ms cubic-bezier(.16, .84, .44, 1),
+    transform 760ms cubic-bezier(.16, .84, .44, 1);
+  will-change: transform, opacity;
 }
 
-.photo-card:hover {
-  transform: translateZ(var(--depth-z, 0px)) rotate(0deg) scale(1.04);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.24);
-  z-index: 2;
+.photo-card.is-entered {
+  opacity: 1;
+  transform:
+    translate3d(0, 0, var(--depth-z))
+    rotate(var(--tilt))
+    scale(1);
+}
+
+.photo-card-video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: #111;
 }
 
 .photo-card img {
@@ -91,6 +109,7 @@ body,
   opacity: 0.85;
 }
 
+/* --- Typography / Logo --- */
 .hero-logo {
   position: fixed;
   top: 50%;
@@ -99,34 +118,115 @@ body,
   font-family: 'Permanent Marker', cursive;
   font-size: clamp(64px, 10vw, 140px);
   color: #0d0d0d;
-  pointer-events: none;
+  pointer-events: auto;
   z-index: 5;
   user-select: none;
   will-change: transform;
   backface-visibility: hidden;
 }
 
+/* --- Custom Cursor --- */
 .cursor-dot {
   position: fixed;
   top: 0;
   left: 0;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
-  background: #0d0d0d;
-  z-index: 50;
+  z-index: 50; /* Stays above everything for the mix-blend to work over the menu */
   pointer-events: none;
   will-change: transform;
+  mix-blend-mode: difference;
 }
 
-.menu-btn {
-  position: fixed;
-  right: 40px;
-  bottom: 40px;
-  width: 56px;
-  height: 56px;
+.cursor-dot-inner {
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
+  background: #ffffff;
+  transform: scale(1);
+  /* Smoother scaling for the cursor hover state */
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Made the hover state slightly larger to better envelope the text/spans for the mixblend effect */
+.cursor-dot.is-hovering .cursor-dot-inner {
+  transform: scale(2.4); 
+}
+
+/* --- Expanding Pill Navigation --- */
+.nav-pill-wrapper {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  height: 48px;
   background: #0d0d0d;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; 
+  padding: 4px;
+  
+  /* Initial state: fits only the inner button */
+  max-width: 48px; 
+  overflow: hidden;
+  white-space: nowrap;
+  
+  /* Extremely smooth and friendly custom spring ease */
+  transition: max-width 0.8s cubic-bezier(0.34, 1.25, 0.4, 1);
+  z-index: 20;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Expanded state */
+.nav-pill-wrapper.is-open {
+  max-width: 600px; 
+}
+
+/* Container for the text links */
+.nav-links {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  padding-left: 24px;
+  padding-right: 16px;
+  
+  /* Hidden by default, shifted slightly right */
+  opacity: 0;
+  transform: translateX(15px);
+  pointer-events: none;
+  transition: 
+    opacity 0.3s ease, 
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Reveal links when open with a gentle glide */
+.nav-pill-wrapper.is-open .nav-links {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+  /* Wait for the pill to stretch slightly before fading in */
+  transition-delay: 0.25s, 0.25s; 
+}
+
+.nav-links a {
+  position: relative;
+  color: #ffffff;
+  text-decoration: none;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  text-transform: capitalize;
+  cursor: none; /* Crucial so the custom cursor takes over */
+  padding: 4px 0;
+}
+
+/* The actual clickable hamburger button area */
+.menu-toggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: transparent;
   border: none;
   display: flex;
   flex-direction: column;
@@ -134,61 +234,32 @@ body,
   align-items: center;
   gap: 5px;
   cursor: none;
-  z-index: 20;
   padding: 0;
+  margin: 0;
+  flex-shrink: 0; 
 }
 
-.menu-btn span {
+/* Hamburger lines */
+.menu-toggle span {
   display: block;
-  width: 20px;
+  width: 16px;
   height: 2px;
   background: #ffffff;
-  transition: transform 0.25s ease, opacity 0.25s ease;
+  /* Friendly easing on the morph animation */
+  transition: 
+    transform 0.6s cubic-bezier(0.34, 1.25, 0.4, 1), 
+    opacity 0.4s ease;
 }
 
-.menu-btn.is-open span:nth-child(1) {
+/* Hamburger to X morph */
+.nav-pill-wrapper.is-open .menu-toggle span:nth-child(1) {
   transform: translateY(7px) rotate(45deg);
 }
 
-.menu-btn.is-open span:nth-child(2) {
+.nav-pill-wrapper.is-open .menu-toggle span:nth-child(2) {
   opacity: 0;
 }
 
-.menu-btn.is-open span:nth-child(3) {
+.nav-pill-wrapper.is-open .menu-toggle span:nth-child(3) {
   transform: translateY(-7px) rotate(-45deg);
-}
-
-.nav-overlay {
-  position: fixed;
-  inset: 0;
-  background: #0d0d0d;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: translateY(100%);
-  transition: transform 0.5s ease;
-  z-index: 15;
-}
-
-.nav-overlay.open {
-  transform: translateY(0);
-}
-
-.nav-overlay nav {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
-
-.nav-overlay a {
-  color: #ffffff;
-  text-decoration: none;
-  font-size: 32px;
-  font-family: system-ui, -apple-system, sans-serif;
-  cursor: none;
-}
-
-.nav-overlay a:hover {
-  opacity: 0.6;
 }

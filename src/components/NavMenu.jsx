@@ -6,10 +6,18 @@ export default function NavMenu() {
   const [open, setOpen] = useState(false);
 
   return (
-    <>
+    <div className={`nav-pill-wrapper ${open ? 'is-open' : ''}`} data-cursor-hover>
+      <nav className="nav-links">
+        {LINKS.map((link) => (
+          <a key={link} href="#" onClick={(e) => e.preventDefault()}>
+            {link}
+          </a>
+        ))}
+      </nav>
+
       <button
         type="button"
-        className={`menu-btn${open ? ' is-open' : ''}`}
+        className="menu-toggle"
         aria-label={open ? 'Close menu' : 'Open menu'}
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
@@ -18,16 +26,6 @@ export default function NavMenu() {
         <span />
         <span />
       </button>
-
-      <div className={`nav-overlay${open ? ' open' : ''}`}>
-        <nav>
-          {LINKS.map((link) => (
-            <a key={link} href="#" onClick={(e) => e.preventDefault()}>
-              {link}
-            </a>
-          ))}
-        </nav>
-      </div>
-    </>
+    </div>
   );
 }

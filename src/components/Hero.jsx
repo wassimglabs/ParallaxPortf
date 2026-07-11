@@ -1,8 +1,11 @@
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import PhotoCard from './PhotoCard';
 import placeholderWork from '../data/placeholderWork';
 
-const LOGO_TEXT = 'STUDIO'; // swap for your actual wordmark
+const LOGO_TEXT = 'HANZOUTI'; // swap for your actual wordmark
+
+const HOVER_SELECTOR = '.photo-card, .hero-logo, [data-cursor-hover]';
 
 // --- room geometry -----------------------------------------------------
 const CANVAS_WIDTH = 2700;
@@ -12,25 +15,18 @@ const CANVAS_HEIGHT = 1650;
 const DEPTH_MIN = -260;
 const DEPTH_MAX = 260;
 
-// the logo is the pivot the camera orbits, not a parallax layer — it
-// stays framed near center but turns harder than the room itself, the
-// way a wide sign foreshortens dramatically as you walk around it
-const LOGO_YAW_MULT = 2.4; // logo rotates this many × the room's yaw
+const LOGO_YAW_MULT = 2.4; 
 const LOGO_PITCH_MULT = 2.1;
-const LOGO_DRIFT = 18; // px — a hint of life, not a sweep
+const LOGO_DRIFT = 18; 
 
 // --- camera limits -------------------------------------------------------
-const MAX_YAW = 14; // deg
-const MAX_PITCH = 9; // deg
-const EDGE_PADDING = 100; // px of extra travel past the exact viewport edge
+const MAX_YAW = 14; 
+const MAX_PITCH = 9; 
+const EDGE_PADDING = 100; 
 
 // --- spring tuning: {stiffness, damping}, mass = 1 ------------------------
-// camera rotation: slightly under critical damping (~0.9x) for a hint of
-// natural overshoot-and-settle, like real neck weight
 const SPRING_CAMERA = { stiffness: 62, damping: 14 };
-// weight-shift translation: close to critical, no visible overshoot
 const SPRING_SHIFT = { stiffness: 46, damping: 13 };
-// cursor dot: stiff and ~critically damped, tight tracking, no float
 const SPRING_DOT = { stiffness: 500, damping: 45 };
 
 function stepSpring(pos, vel, target, stiffness, damping, dt) {
@@ -40,8 +36,6 @@ function stepSpring(pos, vel, target, stiffness, damping, dt) {
   return [nextPos, nextVel];
 }
 
-// saturating response: sensitive near center, eases off toward the edges —
-// a head doesn't rotate linearly with how far off-center you're looking
 function shapeInput(v) {
   const k = 1.35;
   return Math.tanh(v * k) / Math.tanh(k);
@@ -52,26 +46,100 @@ export default function Hero() {
   const canvasRef = useRef(null);
   const logoRef = useRef(null);
   const dotRef = useRef(null);
+  const [cursorRoot, setCursorRoot] = useState(null);
 
-  const pointer = useRef({ x: 0, y: 0 }); // raw normalized target, -1..1
+  const pointer = useRef({ x: 0, y: 0 }); 
   const rafId = useRef(null);
   const lastTime = useRef(null);
   const reduceMotion = useRef(false);
 
-  // single source of truth: everything else is derived from this each frame
   const camera = useRef({ yaw: 0, yawVel: 0, pitch: 0, pitchVel: 0 });
   const shift = useRef({ x: 0, xVel: 0, y: 0, yVel: 0 });
   const dot = useRef({ x: 0, y: 0, xVel: 0, yVel: 0 });
 
-  // deterministic per-card depth so the room has real volume without
-  // touching placeholderWork.js — stable across renders, varies by id
-  const depths = useMemo(() => {
+  useEffect(() => {
+    setCursorRoot(document.body);
+  }, []);
+
+  // --- Advanced Distribution Logic ("Dart Throwing") ---
+  const layouts = useMemo(() => {
     const map = {};
-    placeholderWork.forEach((item) => {
-      const h = Math.sin(item.id * 12.9898) * 43758.5453;
-      const frac = h - Math.floor(h);
-      map[item.id] = DEPTH_MIN + frac * (DEPTH_MAX - DEPTH_MIN);
+    const placed = []; // Keep track of coordinates we've already claimed
+    
+    // Stable pseudo-random generator
+    const pseudoRandom = (seed) => {
+      const h = Math.sin(seed * 12.9898) * 43758.5453;
+      return h - Math.floor(h);
+    };
+
+    const centerX = CANVAS_WIDTH / 2;
+    const centerY = CANVAS_HEIGHT / 2;
+    
+    // --- TUNING VARIABLES ---
+    // Increase this to force cards further apart. Decrease to allow more overlap.
+    const MIN_DIST = 380; 
+    // Radius of the empty void protecting your logo
+    const CENTER_CLEARANCE = 450; 
+
+    placeholderWork.forEach((item, index) => {
+      let x, y;
+      let valid = false;
+      let attempts = 0;
+
+      // "Dart throwing" algorithm: try finding a spot up to 100 times per card
+      while (!valid && attempts < 100) {
+        // Generate a candidate spot
+        x = pseudoRandom(item.id + index * 100 + attempts) * CANVAS_WIDTH;
+        y = pseudoRandom(item.id + index * 200 + attempts) * CANVAS_HEIGHT;
+
+        // 1. Is it too close to the logo?
+        const distToCenter = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+        if (distToCenter < CENTER_CLEARANCE) {
+          attempts++;
+          continue;
+        }
+
+        // 2. Is it too close to any already-placed cards?
+        let tooClose = false;
+        for (let i = 0; i < placed.length; i++) {
+          const dist = Math.sqrt((x - placed[i].x) ** 2 + (y - placed[i].y) ** 2);
+          if (dist < MIN_DIST) {
+            tooClose = true;
+            break;
+          }
+        }
+
+        // If it passed both checks, we found a great spot!
+        if (!tooClose) {
+          valid = true;
+        } else {
+          attempts++;
+        }
+      }
+
+      // Fallback: If canvas gets super crowded and it fails 100 times, force a spot
+      // just outside the center clearance ring.
+      if (!valid) {
+        x = pseudoRandom(item.id + 1000) * CANVAS_WIDTH;
+        y = pseudoRandom(item.id + 2000) * CANVAS_HEIGHT;
+        const distToCenter = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+        if (distToCenter < CENTER_CLEARANCE) {
+          const angle = Math.atan2(y - centerY, x - centerX);
+          x = centerX + Math.cos(angle) * (CENTER_CLEARANCE + 50);
+          y = centerY + Math.sin(angle) * (CENTER_CLEARANCE + 50);
+        }
+      }
+
+      // Save the approved coordinates
+      placed.push({ x, y });
+
+      // Calculate depth and rotation (tilt)
+      const z = DEPTH_MIN + pseudoRandom(item.id * 3) * (DEPTH_MAX - DEPTH_MIN);
+      const rotate = -12 + pseudoRandom(item.id * 4) * 24;
+
+      map[item.id] = { z, rotate, x, y };
     });
+    
     return map;
   }, []);
 
@@ -79,7 +147,7 @@ export default function Hero() {
     reduceMotion.current = window.matchMedia(
       '(prefers-reduced-motion: reduce)'
     ).matches;
-    if (reduceMotion.current) return; // leave everything static
+    if (reduceMotion.current) return; 
 
     const handleMove = (e) => {
       pointer.current.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -87,16 +155,29 @@ export default function Hero() {
     };
     window.addEventListener('mousemove', handleMove);
 
+    const handleOver = (e) => {
+      if (e.target.closest(HOVER_SELECTOR)) {
+        dotRef.current?.classList.add('is-hovering');
+      }
+    };
+    const handleOut = (e) => {
+      const target = e.target.closest(HOVER_SELECTOR);
+      if (!target) return;
+      if (target.contains(e.relatedTarget)) return;
+      dotRef.current?.classList.remove('is-hovering');
+    };
+    window.addEventListener('mouseover', handleOver);
+    window.addEventListener('mouseout', handleOut);
+
     const tick = (time) => {
       if (lastTime.current === null) lastTime.current = time;
-      // clamp dt so a dropped frame / tab switch can't fling the springs
       const dt = Math.min((time - lastTime.current) / 1000, 1 / 30);
       lastTime.current = time;
 
       const nx = shapeInput(pointer.current.x);
       const ny = shapeInput(pointer.current.y);
 
-      // 1. camera rotation — the "head turning"
+      // 1. camera rotation
       const targetYaw = nx * MAX_YAW;
       const targetPitch = -ny * MAX_PITCH;
       [camera.current.yaw, camera.current.yawVel] = stepSpring(
@@ -108,9 +189,7 @@ export default function Hero() {
         SPRING_CAMERA.stiffness, SPRING_CAMERA.damping, dt
       );
 
-      // 2. explore pan — doubles as the "weight shift" of a head turn.
-      // Range is derived from canvas vs. viewport size so the full room
-      // is always reachable, on any screen, not a guessed fixed number.
+      // 2. explore pan
       const panRangeX = Math.max((CANVAS_WIDTH - window.innerWidth) / 2, 0) + EDGE_PADDING;
       const panRangeY = Math.max((CANVAS_HEIGHT - window.innerHeight) / 2, 0) + EDGE_PADDING * 0.6;
       const targetShiftX = -nx * panRangeX;
@@ -124,7 +203,7 @@ export default function Hero() {
         SPRING_SHIFT.stiffness, SPRING_SHIFT.damping, dt
       );
 
-      // 3. cursor dot — near-instant, just enough spring to kill raw jitter
+      // 3. cursor dot
       const targetDotX = (pointer.current.x * window.innerWidth) / 2 + window.innerWidth / 2;
       const targetDotY = (pointer.current.y * window.innerHeight) / 2 + window.innerHeight / 2;
       [dot.current.x, dot.current.xVel] = stepSpring(
@@ -134,13 +213,9 @@ export default function Hero() {
         dot.current.y, dot.current.yVel, targetDotY, SPRING_DOT.stiffness, SPRING_DOT.damping, dt
       );
 
-      // --- apply transforms, all derived from camera/shift state ---
+      // --- apply transforms ---
 
       if (canvasRef.current) {
-        // real 3D: cards carry their own translateZ (see PhotoCard), and
-        // this rotates the whole rigid room about its center — depth
-        // parallax between cards comes from the browser's 3D engine,
-        // not a hand-faked per-layer multiplier
         canvasRef.current.style.transform =
           `translate(-50%, -50%) ` +
           `translate(${shift.current.x}px, ${shift.current.y}px) ` +
@@ -148,12 +223,6 @@ export default function Hero() {
       }
 
       if (logoRef.current) {
-        // no skew, no lever-sweep: the logo shares the stage's own
-        // `perspective` (it's a fixed-position descendant, which makes
-        // .hero-stage its containing block), so real rotateX/rotateY
-        // here produces genuine foreshortening across the wide wordmark
-        // — one side stretches, the other compresses, like walking
-        // around a sign rather than watching it fly past
         const logoYaw = camera.current.yaw * LOGO_YAW_MULT;
         const logoPitch = camera.current.pitch * LOGO_PITCH_MULT;
         const driftX = nx * LOGO_DRIFT;
@@ -174,9 +243,17 @@ export default function Hero() {
     rafId.current = requestAnimationFrame(tick);
     return () => {
       window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseover', handleOver);
+      window.removeEventListener('mouseout', handleOut);
       cancelAnimationFrame(rafId.current);
     };
   }, []);
+
+  const cursor = (
+    <div ref={dotRef} className="cursor-dot" aria-hidden="true">
+      <div className="cursor-dot-inner" />
+    </div>
+  );
 
   return (
     <div ref={stageRef} className="hero-stage">
@@ -191,14 +268,22 @@ export default function Hero() {
           transformOrigin: 'center center',
         }}
       >
-        {placeholderWork.map((item) => (
-          <PhotoCard key={item.id} {...item} depth={depths[item.id]} />
-        ))}
+       {placeholderWork.map((item, i) => (
+        <PhotoCard 
+          key={item.id} 
+          index={i}
+          client={item.client}
+          title={item.title}
+          video={item.video}
+          width={item.width} 
+          layout={layouts[item.id]} 
+        />
+      ))}
       </div>
       <div ref={logoRef} className="hero-logo" aria-hidden="true">
         {LOGO_TEXT}
       </div>
-      <div ref={dotRef} className="cursor-dot" aria-hidden="true" />
+      {cursorRoot ? createPortal(cursor, cursorRoot) : null}
     </div>
   );
 }
