@@ -1,0 +1,194 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Space+Mono:wght@400;700&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #ffffff;
+  font-family: system-ui, -apple-system, sans-serif;
+  cursor: none;
+}
+
+.app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+.hero-stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #ffffff;
+  perspective: 1400px;
+}
+
+.hero-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+  transform-style: preserve-3d;
+}
+
+.photo-card {
+  position: absolute;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+  transform: translateZ(var(--depth-z, 0px)) rotate(var(--tilt));
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.photo-card:hover {
+  transform: translateZ(var(--depth-z, 0px)) rotate(0deg) scale(1.04);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.24);
+  z-index: 2;
+}
+
+.photo-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.photo-tag {
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  bottom: 14px;
+  background: #deff3c;
+  padding: 6px 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #10210a;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.photo-tag-client {
+  font-weight: 700;
+}
+
+.photo-tag-title {
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.hero-logo {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Permanent Marker', cursive;
+  font-size: clamp(64px, 10vw, 140px);
+  color: #0d0d0d;
+  pointer-events: none;
+  z-index: 5;
+  user-select: none;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #0d0d0d;
+  z-index: 50;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.menu-btn {
+  position: fixed;
+  right: 40px;
+  bottom: 40px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #0d0d0d;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  cursor: none;
+  z-index: 20;
+  padding: 0;
+}
+
+.menu-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: #ffffff;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.menu-btn.is-open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.menu-btn.is-open span:nth-child(2) {
+  opacity: 0;
+}
+
+.menu-btn.is-open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.nav-overlay {
+  position: fixed;
+  inset: 0;
+  background: #0d0d0d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(100%);
+  transition: transform 0.5s ease;
+  z-index: 15;
+}
+
+.nav-overlay.open {
+  transform: translateY(0);
+}
+
+.nav-overlay nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-overlay a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 32px;
+  font-family: system-ui, -apple-system, sans-serif;
+  cursor: none;
+}
+
+.nav-overlay a:hover {
+  opacity: 0.6;
+}
