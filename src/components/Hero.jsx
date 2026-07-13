@@ -2,32 +2,54 @@ import { useEffect, useRef, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import PhotoCard from './PhotoCard';
 import placeholderWork from '../data/placeholderWork';
+import semsemLogo from '../assets/y444 (1).svg';
 
-const LOGO_TEXT = 'HANZOUTI'; // swap for your actual wordmark
-
-const HOVER_SELECTOR = '.photo-card, .hero-logo, [data-cursor-hover]';
+const HOVER_SELECTOR = 'a, button, [role="button"], .photo-card, .hero-logo, [data-cursor-hover]';
 
 // --- room geometry -----------------------------------------------------
-const CANVAS_WIDTH = 2700;
-const CANVAS_HEIGHT = 1650;
+const CANVAS_WIDTH = 1680;
+const CANVAS_HEIGHT = 980;
 
-// how far cards sit from the "back wall" (px, mapped to translateZ)
-const DEPTH_MIN = -260;
-const DEPTH_MAX = 260;
-
-const LOGO_YAW_MULT = 2.4; 
-const LOGO_PITCH_MULT = 2.1;
-const LOGO_DRIFT = 18; 
+const LOGO_MOTION_LIMIT = 0.82;
+const LOGO_PERSPECTIVE = 800;
+const LOGO_Z = 60;
+const LOGO_YAW = 42;
+const LOGO_PITCH = 18;
 
 // --- camera limits -------------------------------------------------------
-const MAX_YAW = 14; 
-const MAX_PITCH = 9; 
-const EDGE_PADDING = 100; 
+const MAX_YAW = 14;
+const MAX_PITCH = 8;
+const EDGE_PADDING = 70;
 
 // --- spring tuning: {stiffness, damping}, mass = 1 ------------------------
 const SPRING_CAMERA = { stiffness: 62, damping: 14 };
 const SPRING_SHIFT = { stiffness: 46, damping: 13 };
+const SPRING_LOGO = { stiffness: 26, damping: 12 };
 const SPRING_DOT = { stiffness: 500, damping: 45 };
+
+const ARRANGED_SLOTS = [
+  // Top strip
+  { x: -0.03, y: 0.06, z: 80, rotate: 10 },
+  { x: 0.27, y: 0.05, z: -130, rotate: 6 },
+  { x: 0.52, y: 0.05, z: 160, rotate: 0 },
+  { x: 0.84, y: 0.05, z: -60, rotate: -10 },
+
+  // Side anchors around the protected logo space
+  { x: -0.02, y: 0.37, z: -90, rotate: 6 },
+  { x: 0.22, y: 0.43, z: 120, rotate: 3 },
+  { x: 0.36, y: 0.56, z: -180, rotate: -2 },
+  { x: 0.82, y: 0.41, z: 110, rotate: -7 },
+
+  // Bottom strip
+  { x: -0.02, y: 0.78, z: -130, rotate: -5 },
+  { x: 0.22, y: 0.82, z: 110, rotate: -4 },
+  { x: 0.50, y: 0.90, z: 210, rotate: 0 },
+  { x: 0.84, y: 0.75, z: -90, rotate: 5 },
+
+  // Extra edge pieces for the cropped-gallery feeling
+  { x: 0.67, y: 0.10, z: -240, rotate: -5 },
+  { x: 1.02, y: 0.70, z: 40, rotate: 4 },
+];
 
 function stepSpring(pos, vel, target, stiffness, damping, dt) {
   const accel = (target - pos) * stiffness - vel * damping;
@@ -39,6 +61,10 @@ function stepSpring(pos, vel, target, stiffness, damping, dt) {
 function shapeInput(v) {
   const k = 1.35;
   return Math.tanh(v * k) / Math.tanh(k);
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
 }
 
 export default function Hero() {
@@ -55,89 +81,27 @@ export default function Hero() {
 
   const camera = useRef({ yaw: 0, yawVel: 0, pitch: 0, pitchVel: 0 });
   const shift = useRef({ x: 0, xVel: 0, y: 0, yVel: 0 });
+  const logoMotion = useRef({ x: 0, xVel: 0, y: 0, yVel: 0 });
   const dot = useRef({ x: 0, y: 0, xVel: 0, yVel: 0 });
 
   useEffect(() => {
     setCursorRoot(document.body);
   }, []);
 
-  // --- Advanced Distribution Logic ("Dart Throwing") ---
   const layouts = useMemo(() => {
     const map = {};
-    const placed = []; // Keep track of coordinates we've already claimed
-    
-    // Stable pseudo-random generator
-    const pseudoRandom = (seed) => {
-      const h = Math.sin(seed * 12.9898) * 43758.5453;
-      return h - Math.floor(h);
-    };
-
-    const centerX = CANVAS_WIDTH / 2;
-    const centerY = CANVAS_HEIGHT / 2;
-    
-    // --- TUNING VARIABLES ---
-    // Increase this to force cards further apart. Decrease to allow more overlap.
-    const MIN_DIST = 380; 
-    // Radius of the empty void protecting your logo
-    const CENTER_CLEARANCE = 450; 
-
     placeholderWork.forEach((item, index) => {
-      let x, y;
-      let valid = false;
-      let attempts = 0;
+      const slot = ARRANGED_SLOTS[index % ARRANGED_SLOTS.length];
+      const x = slot.x * CANVAS_WIDTH;
+      const y = slot.y * CANVAS_HEIGHT;
 
-      // "Dart throwing" algorithm: try finding a spot up to 100 times per card
-      while (!valid && attempts < 100) {
-        // Generate a candidate spot
-        x = pseudoRandom(item.id + index * 100 + attempts) * CANVAS_WIDTH;
-        y = pseudoRandom(item.id + index * 200 + attempts) * CANVAS_HEIGHT;
-
-        // 1. Is it too close to the logo?
-        const distToCenter = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
-        if (distToCenter < CENTER_CLEARANCE) {
-          attempts++;
-          continue;
-        }
-
-        // 2. Is it too close to any already-placed cards?
-        let tooClose = false;
-        for (let i = 0; i < placed.length; i++) {
-          const dist = Math.sqrt((x - placed[i].x) ** 2 + (y - placed[i].y) ** 2);
-          if (dist < MIN_DIST) {
-            tooClose = true;
-            break;
-          }
-        }
-
-        // If it passed both checks, we found a great spot!
-        if (!tooClose) {
-          valid = true;
-        } else {
-          attempts++;
-        }
-      }
-
-      // Fallback: If canvas gets super crowded and it fails 100 times, force a spot
-      // just outside the center clearance ring.
-      if (!valid) {
-        x = pseudoRandom(item.id + 1000) * CANVAS_WIDTH;
-        y = pseudoRandom(item.id + 2000) * CANVAS_HEIGHT;
-        const distToCenter = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
-        if (distToCenter < CENTER_CLEARANCE) {
-          const angle = Math.atan2(y - centerY, x - centerX);
-          x = centerX + Math.cos(angle) * (CENTER_CLEARANCE + 50);
-          y = centerY + Math.sin(angle) * (CENTER_CLEARANCE + 50);
-        }
-      }
-
-      // Save the approved coordinates
-      placed.push({ x, y });
-
-      // Calculate depth and rotation (tilt)
-      const z = DEPTH_MIN + pseudoRandom(item.id * 3) * (DEPTH_MAX - DEPTH_MIN);
-      const rotate = -12 + pseudoRandom(item.id * 4) * 24;
-
-      map[item.id] = { z, rotate, x, y };
+      map[item.id] = {
+        x,
+        y,
+        z: slot.z,
+        rotate: slot.rotate,
+        stack: Math.round(slot.z + 500),
+      };
     });
     
     return map;
@@ -169,6 +133,14 @@ export default function Hero() {
     window.addEventListener('mouseover', handleOver);
     window.addEventListener('mouseout', handleOut);
 
+    const handlePointerDown = () => {
+      if (!dotRef.current) return;
+      dotRef.current.classList.remove('is-clicking');
+      void dotRef.current.offsetWidth;
+      dotRef.current.classList.add('is-clicking');
+    };
+    window.addEventListener('pointerdown', handlePointerDown);
+
     const tick = (time) => {
       if (lastTime.current === null) lastTime.current = time;
       const dt = Math.min((time - lastTime.current) / 1000, 1 / 30);
@@ -189,6 +161,12 @@ export default function Hero() {
         SPRING_CAMERA.stiffness, SPRING_CAMERA.damping, dt
       );
 
+      if (stageRef.current) {
+        stageRef.current.style.setProperty('--card-look-yaw', `${-camera.current.yaw * 0.68}deg`);
+        stageRef.current.style.setProperty('--card-look-pitch', `${-camera.current.pitch * 0.62}deg`);
+        stageRef.current.style.setProperty('--card-look-skew', `${-nx * 1.4}deg`);
+      }
+
       // 2. explore pan
       const panRangeX = Math.max((CANVAS_WIDTH - window.innerWidth) / 2, 0) + EDGE_PADDING;
       const panRangeY = Math.max((CANVAS_HEIGHT - window.innerHeight) / 2, 0) + EDGE_PADDING * 0.6;
@@ -203,7 +181,17 @@ export default function Hero() {
         SPRING_SHIFT.stiffness, SPRING_SHIFT.damping, dt
       );
 
-      // 3. cursor dot
+      // 3. elastic logo response, separate from the video/camera motion
+      [logoMotion.current.x, logoMotion.current.xVel] = stepSpring(
+        logoMotion.current.x, logoMotion.current.xVel, nx,
+        SPRING_LOGO.stiffness, SPRING_LOGO.damping, dt
+      );
+      [logoMotion.current.y, logoMotion.current.yVel] = stepSpring(
+        logoMotion.current.y, logoMotion.current.yVel, ny,
+        SPRING_LOGO.stiffness, SPRING_LOGO.damping, dt
+      );
+
+      // 4. cursor dot
       const targetDotX = (pointer.current.x * window.innerWidth) / 2 + window.innerWidth / 2;
       const targetDotY = (pointer.current.y * window.innerHeight) / 2 + window.innerHeight / 2;
       [dot.current.x, dot.current.xVel] = stepSpring(
@@ -223,12 +211,13 @@ export default function Hero() {
       }
 
       if (logoRef.current) {
-        const logoYaw = camera.current.yaw * LOGO_YAW_MULT;
-        const logoPitch = camera.current.pitch * LOGO_PITCH_MULT;
-        const driftX = nx * LOGO_DRIFT;
-        const driftY = -ny * LOGO_DRIFT * 0.6;
+        const lx = clamp(logoMotion.current.x, -LOGO_MOTION_LIMIT, LOGO_MOTION_LIMIT);
+        const ly = clamp(logoMotion.current.y, -LOGO_MOTION_LIMIT, LOGO_MOTION_LIMIT);
+        const logoYaw = lx * LOGO_YAW;
+        const logoPitch = -ly * LOGO_PITCH;
         logoRef.current.style.transform =
-          `translate(calc(-50% + ${driftX}px), calc(-50% + ${driftY}px)) ` +
+          `translate(-50%, -50%) translateZ(${LOGO_Z}px) ` +
+          `perspective(${LOGO_PERSPECTIVE}px) ` +
           `rotateX(${logoPitch}deg) rotateY(${logoYaw}deg)`;
       }
 
@@ -245,6 +234,7 @@ export default function Hero() {
       window.removeEventListener('mousemove', handleMove);
       window.removeEventListener('mouseover', handleOver);
       window.removeEventListener('mouseout', handleOut);
+      window.removeEventListener('pointerdown', handlePointerDown);
       cancelAnimationFrame(rafId.current);
     };
   }, []);
@@ -252,6 +242,17 @@ export default function Hero() {
   const cursor = (
     <div ref={dotRef} className="cursor-dot" aria-hidden="true">
       <div className="cursor-dot-inner" />
+    </div>
+  );
+
+  const logo = (
+    <div ref={logoRef} className="hero-logo" aria-hidden="true">
+      <img
+        className="hero-logo-mark"
+        src={semsemLogo}
+        alt=""
+        draggable={false}
+      />
     </div>
   );
 
@@ -277,12 +278,11 @@ export default function Hero() {
           video={item.video}
           width={item.width} 
           layout={layouts[item.id]} 
+          href={`/work/${item.slug}`}
         />
       ))}
       </div>
-      <div ref={logoRef} className="hero-logo" aria-hidden="true">
-        {LOGO_TEXT}
-      </div>
+      {cursorRoot ? createPortal(logo, cursorRoot) : logo}
       {cursorRoot ? createPortal(cursor, cursorRoot) : null}
     </div>
   );
