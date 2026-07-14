@@ -1,5 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import semsemLogo from '../assets/y444 (1).svg';
+import useDeviceCapabilities from '../hooks/useDeviceCapabilities';
 
 /**
  * @typedef {{ label: string, value: string, href: string, icon: 'mail' | 'whatsapp' | 'instagram' }} ContactEntry
@@ -11,7 +13,12 @@ const DEFAULT_CONTACT_BLOCKS = [
     title: 'Direct contact',
     subtitle: 'Project inquiries, collaborations, and availability',
     entries: [
-      { label: 'Mail', value: 'oussemahanzouti59@gmail.com', href: 'mailto:oussemahanzouti59@gmail.com', icon: 'mail' },
+      {
+        label: 'Mail',
+        value: 'oussemahanzouti59@gmail.com',
+        href: 'https://mail.google.com/mail/?view=cm&fs=1&to=oussemahanzouti59%40gmail.com',
+        icon: 'mail',
+      },
       { label: 'WhatsApp', value: '+216 54 483 636', href: 'https://wa.me/21654483636', icon: 'whatsapp' },
       { label: 'Instagram', value: '@hanzouti_oussema', href: 'https://instagram.com/hanzouti_oussema', icon: 'instagram' },
     ],
@@ -64,6 +71,8 @@ function ContactIcon({ name }) {
 export default function ContactPage({ blocks = DEFAULT_CONTACT_BLOCKS }) {
   const logoRef = useRef(null);
   const dotRef = useRef(null);
+  const { prefersReducedMotion, supportsCustomCursor } = useDeviceCapabilities();
+  const [cursorRoot, setCursorRoot] = useState(null);
   const rafId = useRef(null);
   const lastTime = useRef(null);
   const pointer = useRef({ x: 0, y: 0 });
@@ -76,7 +85,12 @@ export default function ContactPage({ blocks = DEFAULT_CONTACT_BLOCKS }) {
   });
 
   useEffect(() => {
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setCursorRoot(document.body);
+  }, []);
+
+  useEffect(() => {
+    const reduceMotion = prefersReducedMotion;
+    lastTime.current = null;
 
     const handleMove = (event) => {
       pointer.current.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -103,18 +117,28 @@ export default function ContactPage({ blocks = DEFAULT_CONTACT_BLOCKS }) {
       dotRef.current.classList.add('is-clicking');
     };
 
-    window.addEventListener('mousemove', handleMove);
-    window.addEventListener('mouseover', handleOver);
-    window.addEventListener('mouseout', handleOut);
-    window.addEventListener('pointerdown', handlePointerDown);
+    if (supportsCustomCursor) {
+      window.addEventListener('mousemove', handleMove);
+      window.addEventListener('mouseover', handleOver);
+      window.addEventListener('mouseout', handleOut);
+      window.addEventListener('pointerdown', handlePointerDown);
+    }
 
     const tick = (time) => {
       if (lastTime.current === null) lastTime.current = time;
       const dt = Math.min((time - lastTime.current) / 1000, 1 / 30);
       lastTime.current = time;
 
-      const nx = shapeInput(pointer.current.x);
-      const ny = shapeInput(pointer.current.y);
+      const appRoot = document.querySelector('.app');
+      const maxScroll = appRoot ? appRoot.scrollHeight - appRoot.clientHeight : 0;
+      const scrollProgress = maxScroll > 0 ? appRoot.scrollTop / maxScroll : 0;
+      const seconds = time / 1000;
+      const nx = supportsCustomCursor
+        ? shapeInput(pointer.current.x) * 0.18 + Math.sin(seconds * 0.34 + scrollProgress * 5.4) * 0.48
+        : Math.sin(seconds * 0.34 + scrollProgress * 5.4) * 0.48;
+      const ny = supportsCustomCursor
+        ? shapeInput(pointer.current.y) * 0.12 + Math.cos(seconds * 0.3 + scrollProgress * 4.8) * 0.36
+        : Math.cos(seconds * 0.3 + scrollProgress * 4.8) * 0.36;
 
       if (!reduceMotion) {
         [logo.current.x, logo.current.xVel] = stepSpring(
@@ -143,26 +167,28 @@ export default function ContactPage({ blocks = DEFAULT_CONTACT_BLOCKS }) {
         }
       }
 
-      const targetDotX = (pointer.current.x * window.innerWidth) / 2 + window.innerWidth / 2;
-      const targetDotY = (pointer.current.y * window.innerHeight) / 2 + window.innerHeight / 2;
-      [dot.current.x, dot.current.xVel] = stepSpring(
-        dot.current.x,
-        dot.current.xVel,
-        targetDotX,
-        CURSOR_SPRING.stiffness,
-        CURSOR_SPRING.damping,
-        dt
-      );
-      [dot.current.y, dot.current.yVel] = stepSpring(
-        dot.current.y,
-        dot.current.yVel,
-        targetDotY,
-        CURSOR_SPRING.stiffness,
-        CURSOR_SPRING.damping,
-        dt
-      );
+      if (supportsCustomCursor) {
+        const targetDotX = (pointer.current.x * window.innerWidth) / 2 + window.innerWidth / 2;
+        const targetDotY = (pointer.current.y * window.innerHeight) / 2 + window.innerHeight / 2;
+        [dot.current.x, dot.current.xVel] = stepSpring(
+          dot.current.x,
+          dot.current.xVel,
+          targetDotX,
+          CURSOR_SPRING.stiffness,
+          CURSOR_SPRING.damping,
+          dt
+        );
+        [dot.current.y, dot.current.yVel] = stepSpring(
+          dot.current.y,
+          dot.current.yVel,
+          targetDotY,
+          CURSOR_SPRING.stiffness,
+          CURSOR_SPRING.damping,
+          dt
+        );
+      }
 
-      if (dotRef.current) {
+      if (dotRef.current && supportsCustomCursor) {
         dotRef.current.style.transform = `translate(${dot.current.x - 7}px, ${dot.current.y - 7}px)`;
       }
 
@@ -178,14 +204,24 @@ export default function ContactPage({ blocks = DEFAULT_CONTACT_BLOCKS }) {
       window.removeEventListener('pointerdown', handlePointerDown);
       cancelAnimationFrame(rafId.current);
     };
-  }, []);
+  }, [prefersReducedMotion, supportsCustomCursor]);
+
+  const logoLink = (
+    <a href="/" className="contact-logo" aria-label="Back to home" data-cursor-hover>
+      <img ref={logoRef} src={semsemLogo} alt="Oussema" draggable={false} />
+    </a>
+  );
+
+  const cursor = (
+    <div ref={dotRef} className="cursor-dot" aria-hidden="true">
+      <div className="cursor-dot-inner" />
+    </div>
+  );
 
   return (
     <main className="contact-page">
       <header className="contact-header">
-        <a href="/" className="contact-logo" aria-label="Back to home" data-cursor-hover>
-          <img ref={logoRef} src={semsemLogo} alt="Oussema" draggable={false} />
-        </a>
+        {cursorRoot ? null : logoLink}
       </header>
 
       <section aria-labelledby="contact-heading">
@@ -239,9 +275,8 @@ export default function ContactPage({ blocks = DEFAULT_CONTACT_BLOCKS }) {
         HANZOUTI 2026 - All rights reserved
       </footer>
 
-      <div ref={dotRef} className="cursor-dot" aria-hidden="true">
-        <div className="cursor-dot-inner" />
-      </div>
+      {cursorRoot ? createPortal(logoLink, cursorRoot) : null}
+      {supportsCustomCursor && cursorRoot ? createPortal(cursor, cursorRoot) : null}
     </main>
   );
 }

@@ -1,206 +1,171 @@
-const VIDEOS = {
-  bunny: 'https://www.w3schools.com/html/mov_bbb.mp4',
-  flower: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
-  sample: 'https://filesamples.com/samples/video/mp4/sample_640x360.mp4',
-  countdown: 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4',
-  sintel: 'https://media.w3.org/2010/05/sintel/trailer.mp4',
-};
+import pavVideo from '../assets/videos/2 pav 1 Mohamed Oussema Hanzouti.mov';
+import juryVideo from '../assets/videos/JURY FINAL 2.mov';
+import kineticVideo from '../assets/videos/kkkkkkkkkkkkkkh.mov';
+import raidVideo from '../assets/videos/RAID 2026 DOC.mov';
+import timeMentVideo from '../assets/videos/TIME MENT.mov';
+import timelineTwoVideo from '../assets/videos/Timeline 1 2.mp4';
+import timelineVideo from '../assets/videos/Timeline 1.mov';
+
+import storyImage01 from '../assets/images/1.JPG';
+import storyImage02 from '../assets/images/2.JPG';
+import storyImage03 from '../assets/images/3.JPG';
+import storyImage04 from '../assets/images/4.JPG';
+import storyImage05 from '../assets/images/5.JPG';
+import storyImage06 from '../assets/images/6.JPG';
+import storyImage07 from '../assets/images/7.JPG';
+import storyImage08 from '../assets/images/8.JPG';
+import storyImage09 from '../assets/images/9.JPG';
+import storyImage10 from '../assets/images/10.JPG';
+import storyImage11 from '../assets/images/11.JPG';
+import storyImage12 from '../assets/images/12.JPG';
+import storyImage13 from '../assets/images/13.JPG';
+import storyImage14 from '../assets/images/14.JPG';
+
+export const storyImages = [
+  storyImage01,
+  storyImage02,
+  storyImage03,
+  storyImage04,
+  storyImage05,
+  storyImage06,
+  storyImage07,
+  storyImage08,
+  storyImage09,
+  storyImage10,
+  storyImage11,
+  storyImage12,
+  storyImage13,
+  storyImage14,
+];
 
 const placeholderWork = [
   {
     id: 1,
-    slug: 'northwave-ripple',
-    client: 'NORTHWAVE',
-    title: 'Ripple',
-    video: VIDEOS.bunny,
+    slug: 'pav-1',
+    client: 'PAV',
+    title: '2 Pav 1',
+    video: pavVideo,
     width: 210,
+    type: 'Commercial',
     editor: 'Oussema Hanzouti',
+    description:
+      'A local edit from the portfolio archive, presented with the original video asset.',
     credits: [
-      ['Director', 'Mira Vale'],
-      ['Production Company', 'Northwave Studio'],
-      ['Color', 'Glass House'],
+      ['Production Company', 'PAV'],
+      ['Editor', 'Oussema Hanzouti'],
     ],
   },
   {
     id: 2,
-    slug: 'aeon-studios-glass',
-    client: 'AEON STUDIOS',
-    title: 'Glass',
-    video: VIDEOS.flower,
+    slug: 'jury-final-2',
+    client: 'JURY',
+    title: 'Final 2',
+    video: juryVideo,
     width: 185,
+    type: 'Short Film',
     editor: 'Oussema Hanzouti',
+    description:
+      'A finished cut from the local video collection, carried through the landing, index, and detail view.',
     credits: [
-      ['Director', 'Nadia Kemmoun'],
-      ['Production Company', 'Aeon Studios'],
-      ['Sound', 'Noon Audio'],
+      ['Production Company', 'Jury'],
+      ['Editor', 'Oussema Hanzouti'],
     ],
   },
   {
     id: 3,
-    slug: 'koji-run-fireline',
-    client: 'KOJI RUN',
-    title: 'Fireline',
-    video: VIDEOS.sample,
+    slug: 'kinetic-cut',
+    client: 'KINETIC',
+    title: 'Cut',
+    video: kineticVideo,
     width: 205,
+    type: 'Campaign',
     editor: 'Oussema Hanzouti',
+    description:
+      'A fast portfolio piece using the supplied local media asset as the source.',
     credits: [
-      ['Director', 'Ari Sato'],
-      ['Production Company', 'Koji Run'],
-      ['Agency', 'Matter Office'],
+      ['Production Company', 'Kinetic'],
+      ['Editor', 'Oussema Hanzouti'],
     ],
   },
   {
     id: 4,
-    slug: 'veltra-afterglow',
-    client: 'VELTRA',
-    title: 'Afterglow',
-    video: VIDEOS.countdown,
+    slug: 'raid-2026-doc',
+    client: 'RAID',
+    title: '2026 Doc',
+    video: raidVideo,
     width: 195,
+    type: 'Documentary',
     editor: 'Oussema Hanzouti',
+    description:
+      'A documentary entry wired directly to the RAID 2026 DOC video in the assets folder.',
     credits: [
-      ['Director', 'Leila Amara'],
-      ['Production Company', 'Veltra'],
-      ['VFX', 'Trace Unit'],
+      ['Production Company', 'RAID'],
+      ['Editor', 'Oussema Hanzouti'],
     ],
   },
   {
     id: 5,
-    slug: 'mono-house-static',
-    client: 'MONO HOUSE',
-    title: 'Static',
-    video: VIDEOS.sintel,
+    slug: 'time-ment',
+    client: 'TIME',
+    title: 'Ment',
+    video: timeMentVideo,
     width: 190,
+    type: 'Brand Film',
     editor: 'Oussema Hanzouti',
+    description:
+      'A measured portfolio film sourced from the local TIME MENT asset.',
     credits: [
-      ['Director', 'Jon Bell'],
-      ['Production Company', 'Mono House'],
-      ['Post Producer', 'Rami Ford'],
+      ['Production Company', 'Time'],
+      ['Editor', 'Oussema Hanzouti'],
     ],
   },
   {
     id: 6,
-    slug: 'halcyon-undertow',
-    client: 'HALCYON',
-    title: 'Undertow',
-    video: VIDEOS.flower,
+    slug: 'timeline-1-2',
+    client: 'TIMELINE',
+    title: '1.2',
+    video: timelineTwoVideo,
     width: 230,
+    type: 'Commercial',
     editor: 'Oussema Hanzouti',
+    description:
+      'A Timeline edit using the MP4 asset already included in the project.',
     credits: [
-      ['Director', 'Sarah Lind'],
-      ['Production Company', 'Halcyon'],
-      ['Color', 'Aster Lab'],
+      ['Production Company', 'Timeline'],
+      ['Editor', 'Oussema Hanzouti'],
     ],
   },
   {
     id: 7,
-    slug: 'ferro-nightshift',
-    client: 'FERRO',
-    title: 'Nightshift',
-    video: VIDEOS.bunny,
+    slug: 'timeline-1',
+    client: 'TIMELINE',
+    title: '1',
+    video: timelineVideo,
     width: 205,
+    type: 'Music Video',
     editor: 'Oussema Hanzouti',
+    description:
+      'A companion Timeline piece connected to the original local video file.',
     credits: [
-      ['Director', 'Omar Dali'],
-      ['Production Company', 'Ferro'],
-      ['Music', 'Blue Current'],
+      ['Production Company', 'Timeline'],
+      ['Editor', 'Oussema Hanzouti'],
     ],
   },
   {
     id: 8,
-    slug: 'palewave-horizon',
-    client: 'PALEWAVE',
-    title: 'Horizon',
-    video: VIDEOS.sample,
+    slug: 'image-story',
+    client: 'STORY',
+    title: '1-14',
+    images: storyImages,
     width: 185,
+    type: 'Image Story',
     editor: 'Oussema Hanzouti',
+    position: 'Editor / Sequence',
+    description:
+      'A fourteen-image story played in order as one continuous piece, from image 1 through image 14.',
     credits: [
-      ['Director', 'Ines Martin'],
-      ['Production Company', 'Palewave'],
-      ['Sound', 'Mono Field'],
-    ],
-  },
-  {
-    id: 9,
-    slug: 'greyfield-static-gold',
-    client: 'GREYFIELD',
-    title: 'Static Gold',
-    video: VIDEOS.countdown,
-    width: 195,
-    editor: 'Oussema Hanzouti',
-    credits: [
-      ['Director', 'Theo Nash'],
-      ['Production Company', 'Greyfield'],
-      ['Agency', 'Gold Form'],
-    ],
-  },
-  {
-    id: 10,
-    slug: 'onyx-lab-afterglow-ii',
-    client: 'ONYX LAB',
-    title: 'Afterglow II',
-    video: VIDEOS.sintel,
-    width: 205,
-    editor: 'Oussema Hanzouti',
-    credits: [
-      ['Director', 'Lina Frost'],
-      ['Production Company', 'Onyx Lab'],
-      ['VFX', 'Layer Zero'],
-    ],
-  },
-  {
-    id: 11,
-    slug: 'sundial-vertigo',
-    client: 'SUNDIAL',
-    title: 'Vertigo',
-    video: VIDEOS.flower,
-    width: 180,
-    editor: 'Oussema Hanzouti',
-    credits: [
-      ['Director', 'Malik Grey'],
-      ['Production Company', 'Sundial'],
-      ['Color', 'Warm Black'],
-    ],
-  },
-  {
-    id: 12,
-    slug: 'tidecrest-bloomfield',
-    client: 'TIDECREST',
-    title: 'Bloomfield',
-    video: VIDEOS.bunny,
-    width: 175,
-    editor: 'Oussema Hanzouti',
-    credits: [
-      ['Director', 'Jade Roe'],
-      ['Production Company', 'Tidecrest'],
-      ['Post Producer', 'Hana Kim'],
-    ],
-  },
-  {
-    id: 13,
-    slug: 'numen-drift',
-    client: 'NUMEN',
-    title: 'Drift',
-    video: VIDEOS.sample,
-    width: 185,
-    editor: 'Oussema Hanzouti',
-    credits: [
-      ['Director', 'Sami Gharbi'],
-      ['Production Company', 'Numen'],
-      ['Sound', 'Airlock'],
-    ],
-  },
-  {
-    id: 14,
-    slug: 'loose-ends-echo',
-    client: 'LOOSE ENDS',
-    title: 'Echo',
-    video: VIDEOS.countdown,
-    width: 175,
-    editor: 'Oussema Hanzouti',
-    credits: [
-      ['Director', 'Ana Moss'],
-      ['Production Company', 'Loose Ends'],
-      ['Agency', 'Letterform'],
+      ['Production Company', 'Story'],
+      ['Editor', 'Oussema Hanzouti'],
     ],
   },
 ];

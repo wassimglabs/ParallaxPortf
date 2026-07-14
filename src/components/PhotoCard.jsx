@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
+import ImageSequence from './ImageSequence';
 
 const ENTER_BASE_DELAY = 40; // ms stagger step between cards
 const ENTER_JITTER = 220; // ms of pseudo-random spread so it isn't metronomic
 
-export default function PhotoCard({ client, title, video, width, layout, index = 0, href }) {
+export default function PhotoCard({ client, title, video, images = [], width, layout, index = 0, href }) {
   const videoRef = useRef(null);
   const [entered, setEntered] = useState(false);
+  const hasImageSequence = images.length > 0;
+  const verticalOffset = width * 0.54;
 
   useEffect(() => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -23,10 +26,10 @@ export default function PhotoCard({ client, title, video, width, layout, index =
   useEffect(() => {
     // don't call .play() until the card has entered — kicking off 14 video
     // decodes on mount at once is what makes hero sections stutter/jank
-    if (entered && videoRef.current) {
+    if (!hasImageSequence && entered && videoRef.current) {
       videoRef.current.play().catch(() => {});
     }
-  }, [entered]);
+  }, [entered, hasImageSequence]);
 
   return (
     <a
@@ -40,22 +43,31 @@ export default function PhotoCard({ client, title, video, width, layout, index =
         '--depth-z': `${layout.z}px`,
         '--stack-z': layout.stack,
         marginLeft: `-${width / 2}px`,
-        marginTop: '-112px',
+        marginTop: `-${verticalOffset}px`,
       }}
       aria-label={`${client} ${title}`}
     >
       <div className="photo-card-surface">
-        <video
-          ref={videoRef}
-          className="photo-card-video"
-          src={video}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          draggable={false}
-        />
+        {hasImageSequence ? (
+          <ImageSequence
+            images={images}
+            alt={`${client} ${title}`}
+            isPlaying={entered}
+            className="photo-card-media photo-card-sequence"
+          />
+        ) : (
+          <video
+            ref={videoRef}
+            className="photo-card-video photo-card-media"
+            src={video}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            draggable={false}
+          />
+        )}
         <div className="photo-tag">
           <span className="photo-tag-client">{client}</span>
           <span className="photo-tag-title">{title}</span>

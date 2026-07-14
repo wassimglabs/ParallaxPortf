@@ -2,8 +2,8 @@ import { useState } from 'react';
 
 const LINKS = [
   { label: 'Home', href: '/' },
-  { label: 'Work', href: '/' },
-  { label: 'About', href: '/' },
+  { label: 'Work', href: '/work' },
+  { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
 ];
 
