@@ -13,12 +13,18 @@ dist-ssr
 *.local
 
 # Video assets
-src/assets/videos/
+src/assets/videos/*
 *.mp4
 *.mov
 *.webm
 *.avi
 *.mkv
+!src/assets/videos/
+!src/assets/videos/optimized/
+!src/assets/videos/optimized/*.mp4
+
+# Local package-manager cache
+.npm-cache/
 
 # Editor directories and files
 .vscode/*

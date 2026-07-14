@@ -1,10 +1,10 @@
-import pavVideo from '../assets/videos/2 pav 1 Mohamed Oussema Hanzouti.mov';
-import juryVideo from '../assets/videos/JURY FINAL 2.mov';
-import kineticVideo from '../assets/videos/kkkkkkkkkkkkkkh.mov';
-import raidVideo from '../assets/videos/RAID 2026 DOC.mov';
-import timeMentVideo from '../assets/videos/TIME MENT.mov';
-import timelineTwoVideo from '../assets/videos/Timeline 1 2.mp4';
-import timelineVideo from '../assets/videos/Timeline 1.mov';
+import pavVideo from '../assets/videos/optimized/pav-1.mp4';
+import juryVideo from '../assets/videos/optimized/jury-final-2.mp4';
+import kineticVideo from '../assets/videos/optimized/kinetic-cut.mp4';
+import raidVideo from '../assets/videos/optimized/raid-2026-doc.mp4';
+import timeMentVideo from '../assets/videos/optimized/time-ment.mp4';
+import timelineTwoVideo from '../assets/videos/optimized/timeline-1-2.mp4';
+import timelineVideo from '../assets/videos/optimized/timeline-1.mp4';
 
 import storyImage01 from '../assets/images/1.JPG';
 import storyImage02 from '../assets/images/2.JPG';
