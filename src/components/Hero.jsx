@@ -607,6 +607,7 @@ export default function Hero() {
           client={item.client}
           title={item.title}
           video={item.video}
+          poster={item.poster}
           images={item.images}
           width={layouts[item.id].width}
           layout={layouts[item.id]} 

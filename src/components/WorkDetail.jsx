@@ -367,9 +367,10 @@ export default function WorkDetail({ work }) {
               ref={videoRef}
               className="work-video"
               src={work.video}
+              poster={work.poster}
               crossOrigin="anonymous"
               muted={isMuted}
-              preload="auto"
+              preload="metadata"
               playsInline
               onLoadedMetadata={syncDuration}
               onTimeUpdate={syncTime}

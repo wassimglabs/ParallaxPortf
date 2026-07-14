@@ -22,6 +22,8 @@ src/assets/videos/*
 !src/assets/videos/
 !src/assets/videos/optimized/
 !src/assets/videos/optimized/*.mp4
+!src/assets/videos/posters/
+!src/assets/videos/posters/*.jpg
 
 # Local package-manager cache
 .npm-cache/

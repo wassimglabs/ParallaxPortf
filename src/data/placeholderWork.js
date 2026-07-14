@@ -5,21 +5,28 @@ import raidVideo from '../assets/videos/optimized/raid-2026-doc.mp4';
 import timeMentVideo from '../assets/videos/optimized/time-ment.mp4';
 import timelineTwoVideo from '../assets/videos/optimized/timeline-1-2.mp4';
 import timelineVideo from '../assets/videos/optimized/timeline-1.mp4';
+import pavPoster from '../assets/videos/posters/pav-1.jpg';
+import juryPoster from '../assets/videos/posters/jury-final-2.jpg';
+import kineticPoster from '../assets/videos/posters/kinetic-cut.jpg';
+import raidPoster from '../assets/videos/posters/raid-2026-doc.jpg';
+import timeMentPoster from '../assets/videos/posters/time-ment.jpg';
+import timelineTwoPoster from '../assets/videos/posters/timeline-1-2.jpg';
+import timelinePoster from '../assets/videos/posters/timeline-1.jpg';
 
-import storyImage01 from '../assets/images/1.JPG';
-import storyImage02 from '../assets/images/2.JPG';
-import storyImage03 from '../assets/images/3.JPG';
-import storyImage04 from '../assets/images/4.JPG';
-import storyImage05 from '../assets/images/5.JPG';
-import storyImage06 from '../assets/images/6.JPG';
-import storyImage07 from '../assets/images/7.JPG';
-import storyImage08 from '../assets/images/8.JPG';
-import storyImage09 from '../assets/images/9.JPG';
-import storyImage10 from '../assets/images/10.JPG';
-import storyImage11 from '../assets/images/11.JPG';
-import storyImage12 from '../assets/images/12.JPG';
-import storyImage13 from '../assets/images/13.JPG';
-import storyImage14 from '../assets/images/14.JPG';
+import storyImage01 from '../assets/images/optimized/1.jpg';
+import storyImage02 from '../assets/images/optimized/2.jpg';
+import storyImage03 from '../assets/images/optimized/3.jpg';
+import storyImage04 from '../assets/images/optimized/4.jpg';
+import storyImage05 from '../assets/images/optimized/5.jpg';
+import storyImage06 from '../assets/images/optimized/6.jpg';
+import storyImage07 from '../assets/images/optimized/7.jpg';
+import storyImage08 from '../assets/images/optimized/8.jpg';
+import storyImage09 from '../assets/images/optimized/9.jpg';
+import storyImage10 from '../assets/images/optimized/10.jpg';
+import storyImage11 from '../assets/images/optimized/11.jpg';
+import storyImage12 from '../assets/images/optimized/12.jpg';
+import storyImage13 from '../assets/images/optimized/13.jpg';
+import storyImage14 from '../assets/images/optimized/14.jpg';
 
 export const storyImages = [
   storyImage01,
@@ -45,6 +52,7 @@ const placeholderWork = [
     client: 'PAV',
     title: '2 Pav 1',
     video: pavVideo,
+    poster: pavPoster,
     width: 210,
     type: 'Commercial',
     editor: 'Oussema Hanzouti',
@@ -61,6 +69,7 @@ const placeholderWork = [
     client: 'JURY',
     title: 'Final 2',
     video: juryVideo,
+    poster: juryPoster,
     width: 185,
     type: 'Short Film',
     editor: 'Oussema Hanzouti',
@@ -77,6 +86,7 @@ const placeholderWork = [
     client: 'KINETIC',
     title: 'Cut',
     video: kineticVideo,
+    poster: kineticPoster,
     width: 205,
     type: 'Campaign',
     editor: 'Oussema Hanzouti',
@@ -93,6 +103,7 @@ const placeholderWork = [
     client: 'RAID',
     title: '2026 Doc',
     video: raidVideo,
+    poster: raidPoster,
     width: 195,
     type: 'Documentary',
     editor: 'Oussema Hanzouti',
@@ -109,6 +120,7 @@ const placeholderWork = [
     client: 'TIME',
     title: 'Ment',
     video: timeMentVideo,
+    poster: timeMentPoster,
     width: 190,
     type: 'Brand Film',
     editor: 'Oussema Hanzouti',
@@ -125,6 +137,7 @@ const placeholderWork = [
     client: 'TIMELINE',
     title: '1.2',
     video: timelineTwoVideo,
+    poster: timelineTwoPoster,
     width: 230,
     type: 'Commercial',
     editor: 'Oussema Hanzouti',
@@ -141,6 +154,7 @@ const placeholderWork = [
     client: 'TIMELINE',
     title: '1',
     video: timelineVideo,
+    poster: timelinePoster,
     width: 205,
     type: 'Music Video',
     editor: 'Oussema Hanzouti',

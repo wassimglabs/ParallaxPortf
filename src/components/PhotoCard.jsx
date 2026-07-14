@@ -3,10 +3,14 @@ import ImageSequence from './ImageSequence';
 
 const ENTER_BASE_DELAY = 40; // ms stagger step between cards
 const ENTER_JITTER = 220; // ms of pseudo-random spread so it isn't metronomic
+const VIDEO_IDLE_DELAY = 900;
+const VIDEO_STAGGER_DELAY = 260;
 
-export default function PhotoCard({ client, title, video, images = [], width, layout, index = 0, href }) {
+export default function PhotoCard({ client, title, video, poster, images = [], width, layout, index = 0, href }) {
   const videoRef = useRef(null);
+  const loadTimerRef = useRef(null);
   const [entered, setEntered] = useState(false);
+  const [loadVideo, setLoadVideo] = useState(false);
   const hasImageSequence = images.length > 0;
   const verticalOffset = width * 0.54;
 
@@ -14,22 +18,44 @@ export default function PhotoCard({ client, title, video, images = [], width, la
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduceMotion) {
       setEntered(true);
-      return;
+      return undefined;
     }
+
     // stable per-card jitter (not Math.random) so it's consistent across re-renders
     const jitter = (index * 137) % ENTER_JITTER;
     const delay = index * ENTER_BASE_DELAY + jitter;
-    const t = setTimeout(() => setEntered(true), delay);
-    return () => clearTimeout(t);
+    const timerId = window.setTimeout(() => setEntered(true), delay);
+    return () => window.clearTimeout(timerId);
   }, [index]);
 
   useEffect(() => {
-    // don't call .play() until the card has entered — kicking off 14 video
-    // decodes on mount at once is what makes hero sections stutter/jank
-    if (!hasImageSequence && entered && videoRef.current) {
+    if (hasImageSequence || !entered) return undefined;
+
+    const scheduleIdle = window.requestIdleCallback || ((callback) => window.setTimeout(callback, 1));
+    const cancelIdle = window.cancelIdleCallback || window.clearTimeout;
+    const idleId = scheduleIdle(() => {
+      loadTimerRef.current = window.setTimeout(() => {
+        setLoadVideo(true);
+      }, VIDEO_IDLE_DELAY + index * VIDEO_STAGGER_DELAY);
+    });
+
+    return () => {
+      cancelIdle(idleId);
+      window.clearTimeout(loadTimerRef.current);
+    };
+  }, [entered, hasImageSequence, index]);
+
+  useEffect(() => {
+    if (!hasImageSequence && entered && loadVideo && videoRef.current) {
       videoRef.current.play().catch(() => {});
     }
-  }, [entered, hasImageSequence]);
+  }, [entered, hasImageSequence, loadVideo]);
+
+  const warmVideo = () => {
+    if (!hasImageSequence) {
+      setLoadVideo(true);
+    }
+  };
 
   return (
     <a
@@ -46,6 +72,8 @@ export default function PhotoCard({ client, title, video, images = [], width, la
         marginTop: `-${verticalOffset}px`,
       }}
       aria-label={`${client} ${title}`}
+      onPointerEnter={warmVideo}
+      onFocus={warmVideo}
     >
       <div className="photo-card-surface">
         {hasImageSequence ? (
@@ -59,12 +87,13 @@ export default function PhotoCard({ client, title, video, images = [], width, la
           <video
             ref={videoRef}
             className="photo-card-video photo-card-media"
-            src={video}
+            src={loadVideo ? video : undefined}
+            poster={poster}
             autoPlay
             muted
             loop
             playsInline
-            preload="auto"
+            preload={loadVideo ? 'metadata' : 'none'}
             draggable={false}
           />
         )}

@@ -319,12 +319,13 @@ export default function WorkIndex() {
             key={activeWork.id}
             ref={videoRef}
             className="work-hover-video"
-            src={activeWork.video}
+            src={previewVisible ? activeWork.video : undefined}
+            poster={activeWork.poster}
             muted
-            autoPlay
+            autoPlay={previewVisible}
             loop
             playsInline
-            preload="auto"
+            preload={previewVisible ? 'metadata' : 'none'}
             draggable={false}
           />
         )}
