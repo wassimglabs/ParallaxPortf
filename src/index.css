@@ -192,44 +192,6 @@ body,
   animation: hero-star-shine 4.6s ease-in-out infinite;
 }
 
-.hero-phone-stars {
-  display: none;
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  pointer-events: none;
-}
-
-.hero-phone-star {
-  opacity: 0.92;
-  transform: translate(-50%, -50%) scale(1);
-  box-shadow:
-    0 0 16px var(--hero-star-soft),
-    0 0 44px var(--hero-star-soft),
-    0 0 84px var(--hero-star-soft);
-}
-
-.hero-stage.is-touch-layout .hero-phone-stars {
-  display: block;
-}
-
-.hero-stage.is-touch-layout .hero-phone-star {
-  background: var(--hero-star);
-  opacity: 0.96;
-}
-
-@media (max-width: 900px), (hover: none), (pointer: coarse) {
-  .hero-phone-stars {
-    display: block;
-    z-index: 4;
-  }
-
-  .hero-phone-star {
-    background: var(--hero-star);
-    opacity: 0.96;
-  }
-}
-
 .photo-card {
   position: absolute;
   z-index: var(--stack-z);

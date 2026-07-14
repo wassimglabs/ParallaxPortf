@@ -92,20 +92,6 @@ const STAR_FIELD = Array.from({ length: 64 }, (_, index) => {
   };
 });
 
-const PHONE_VISIBLE_STARS = [
-  { x: 0.18, y: 0.16, size: 8, delay: 0.35 },
-  { x: 0.5, y: 0.1, size: 6, delay: 1.7 },
-  { x: 0.82, y: 0.18, size: 8, delay: 2.45 },
-  { x: 0.12, y: 0.38, size: 7, delay: 1.15 },
-  { x: 0.9, y: 0.42, size: 7, delay: 3.05 },
-  { x: 0.15, y: 0.68, size: 8, delay: 2.05 },
-  { x: 0.85, y: 0.66, size: 8, delay: 0.85 },
-  { x: 0.34, y: 0.88, size: 6, delay: 1.45 },
-  { x: 0.68, y: 0.86, size: 7, delay: 2.7 },
-  { x: 0.92, y: 0.78, size: 5, delay: 0.15 },
-  { x: 0.08, y: 0.82, size: 5, delay: 2.25 },
-];
-
 function stepSpring(pos, vel, target, stiffness, damping, dt) {
   const accel = (target - pos) * stiffness - vel * damping;
   const nextVel = vel + accel * dt;
@@ -542,25 +528,6 @@ export default function Hero() {
     </div>
   );
 
-  const phoneStars = (
-    <div className="hero-phone-stars" aria-hidden="true">
-      {PHONE_VISIBLE_STARS.map((star, index) => (
-        <span
-          key={`phone-${star.x}-${star.y}`}
-          className="hero-star hero-phone-star"
-          style={{
-            left: `${star.x * 100}%`,
-            top: `${star.y * 100}%`,
-            width: star.size,
-            height: star.size,
-            animationDelay: `${star.delay}s`,
-            animationDuration: `${3.6 + (index % 4) * 0.44}s`,
-          }}
-        />
-      ))}
-    </div>
-  );
-
   return (
     <div
       ref={stageRef}
@@ -571,7 +538,6 @@ export default function Hero() {
       onPointerUp={handleTouchExploreEnd}
       onPointerCancel={handleTouchExploreCancel}
     >
-      {phoneStars}
       <div
         ref={canvasRef}
         className="hero-canvas"
