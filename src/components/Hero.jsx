@@ -116,6 +116,7 @@ export default function Hero() {
   const activeCardRef = useRef(null);
   const routingCardClick = useRef(false);
   const [cursorRoot, setCursorRoot] = useState(null);
+  const [hasSeenDragHint, setHasSeenDragHint] = useState(false);
   const { prefersReducedMotion, supportsHoverEffects, supportsCustomCursor } = useDeviceCapabilities();
   const [viewport, setViewport] = useState(() => ({
     width: window.innerWidth,
@@ -305,6 +306,7 @@ export default function Hero() {
     const distance = Math.hypot(dx, dy);
     if (distance > TOUCH_DRAG_INTENT_PX) {
       touchDrag.current.moved = true;
+      setHasSeenDragHint(true);
     }
 
     pointer.current.x = clamp(
@@ -583,6 +585,15 @@ export default function Hero() {
       </div>
       {cursorRoot ? createPortal(logo, cursorRoot) : logo}
       {supportsCustomCursor && cursorRoot ? createPortal(cursor, cursorRoot) : null}
+      <div
+        className={`hero-drag-hint${supportsHoverEffects || hasSeenDragHint ? ' is-hidden' : ''}`}
+        aria-hidden={supportsHoverEffects || hasSeenDragHint}
+      >
+        <span className="hero-drag-hint-icon" aria-hidden="true">
+          <span />
+        </span>
+        <span>Drag to explore</span>
+      </div>
     </div>
   );
 }
