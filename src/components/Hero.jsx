@@ -151,10 +151,13 @@ export default function Hero() {
     if (supportsHoverEffects || hasSeenDragHint) return undefined;
 
     const hideOnDrag = (clientX, clientY) => {
-      if (!dragHintStart.current) return;
+      if (!dragHintStart.current) {
+        setHasSeenDragHint(true);
+        return;
+      }
       const dx = clientX - dragHintStart.current.x;
       const dy = clientY - dragHintStart.current.y;
-      if (Math.hypot(dx, dy) > 3) {
+      if (Math.hypot(dx, dy) > 1) {
         setHasSeenDragHint(true);
       }
     };

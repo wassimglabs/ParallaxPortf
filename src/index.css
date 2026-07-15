@@ -2141,17 +2141,24 @@ body,
     white-space: nowrap;
     pointer-events: none;
     transform: translateX(-50%);
-    opacity: 0.74;
+    opacity: 1;
     text-shadow: 0 1px 10px var(--page-bg);
     transition:
       opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
       transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
-    animation: hero-drag-hint-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .hero-drag-hint span {
+    animation: hero-drag-hint-pulse 1.8s ease-in-out infinite;
   }
 
   .hero-drag-hint.is-hidden {
     opacity: 0;
     transform: translateX(-50%) translateY(10px) scale(0.96);
+  }
+
+  .hero-drag-hint.is-hidden span {
+    animation: none;
   }
 
   .hero-logo.is-touch-logo {
@@ -2215,20 +2222,22 @@ body,
   }
 }
 
-@keyframes hero-drag-hint-in {
+@keyframes hero-drag-hint-pulse {
   0% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(8px) scale(0.98);
+    opacity: 0.35;
+  }
+
+  50% {
+    opacity: 0.9;
   }
 
   100% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 0.35;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-drag-hint {
+  .hero-drag-hint span {
     animation: none;
   }
 }
