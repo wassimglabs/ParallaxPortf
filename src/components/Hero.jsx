@@ -115,6 +115,7 @@ export default function Hero() {
   const dotRef = useRef(null);
   const activeCardRef = useRef(null);
   const routingCardClick = useRef(false);
+  const dragHintStart = useRef(null);
   const [cursorRoot, setCursorRoot] = useState(null);
   const [hasSeenDragHint, setHasSeenDragHint] = useState(false);
   const { prefersReducedMotion, supportsHoverEffects, supportsCustomCursor } = useDeviceCapabilities();
@@ -145,6 +146,65 @@ export default function Hero() {
   useEffect(() => {
     setCursorRoot(document.body);
   }, []);
+
+  useEffect(() => {
+    if (supportsHoverEffects || hasSeenDragHint) return undefined;
+
+    const hideOnDrag = (clientX, clientY) => {
+      if (!dragHintStart.current) return;
+      const dx = clientX - dragHintStart.current.x;
+      const dy = clientY - dragHintStart.current.y;
+      if (Math.hypot(dx, dy) > 3) {
+        setHasSeenDragHint(true);
+      }
+    };
+
+    const handlePointerDown = (event) => {
+      if (event.pointerType === 'mouse') return;
+      dragHintStart.current = { x: event.clientX, y: event.clientY };
+    };
+
+    const handlePointerMove = (event) => {
+      if (event.pointerType === 'mouse') return;
+      hideOnDrag(event.clientX, event.clientY);
+    };
+
+    const handlePointerEnd = () => {
+      dragHintStart.current = null;
+    };
+
+    const handleTouchStart = (event) => {
+      const touch = event.touches[0];
+      if (!touch) return;
+      dragHintStart.current = { x: touch.clientX, y: touch.clientY };
+    };
+
+    const handleTouchMove = (event) => {
+      const touch = event.touches[0];
+      if (!touch) return;
+      hideOnDrag(touch.clientX, touch.clientY);
+    };
+
+    window.addEventListener('pointerdown', handlePointerDown, true);
+    window.addEventListener('pointermove', handlePointerMove, true);
+    window.addEventListener('pointerup', handlePointerEnd, true);
+    window.addEventListener('pointercancel', handlePointerEnd, true);
+    window.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { capture: true, passive: true });
+    window.addEventListener('touchend', handlePointerEnd, true);
+    window.addEventListener('touchcancel', handlePointerEnd, true);
+
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown, true);
+      window.removeEventListener('pointermove', handlePointerMove, true);
+      window.removeEventListener('pointerup', handlePointerEnd, true);
+      window.removeEventListener('pointercancel', handlePointerEnd, true);
+      window.removeEventListener('touchstart', handleTouchStart, true);
+      window.removeEventListener('touchmove', handleTouchMove, true);
+      window.removeEventListener('touchend', handlePointerEnd, true);
+      window.removeEventListener('touchcancel', handlePointerEnd, true);
+    };
+  }, [hasSeenDragHint, supportsHoverEffects]);
 
   useEffect(() => {
     const syncViewport = () => {
@@ -589,9 +649,6 @@ export default function Hero() {
         className={`hero-drag-hint${supportsHoverEffects || hasSeenDragHint ? ' is-hidden' : ''}`}
         aria-hidden={supportsHoverEffects || hasSeenDragHint}
       >
-        <span className="hero-drag-hint-icon" aria-hidden="true">
-          <span />
-        </span>
         <span>Drag to explore</span>
       </div>
     </div>
